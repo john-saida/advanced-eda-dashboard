@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced EDA Dashboard</title>
+</head>
+
+<body>
+
+    <h1>Advanced EDA Dashboard</h1>
+
+    <p>Upload a CSV file to analyze your dataset.</p>
+
+    <form action="/analyze" method="POST" enctype="multipart/form-data">
+
+        <input type="file" name="file" accept=".csv" required>
+
+        <button type="submit">Analyze Dataset</button>
+
+    </form>
+
+
+   {% if overview %}
+         
+        <!-- ==================== -->
+        <!-- Dataset Overview -->
+        <!-- ==================== -->
+
+        <h2>Dataset Overview</h2>
+
+        <p>Rows: {{ overview.rows }}</p>
+        <p>Columns: {{ overview.columns }}</p>
+        <p>Missing Values: {{ overview.missing_values }}</p>
+        <p>Duplicate Rows: {{ overview.duplicate_rows }}</p>
+
+
+        <!-- ==================== -->
+        <!-- Statistical Summary -->
+        <!-- ==================== -->
+
+        <h2>Statistical Summary</h2>
+        
+
+        <h3>Mean</h3>
+        <pre>{{ mean_values.to_dict() }}</pre>
+
+        <h3>Median</h3>
+        <pre>{{ median_values.to_dict() }}</pre>
+
+        <h3>Minimum</h3>
+        <pre>{{ min_values.to_dict() }}</pre>
+
+        <h3>Maximum</h3>
+        <pre>{{ max_values.to_dict() }}</pre>
+
+        <h3>Standard Deviation</h3>
+        <pre>{{ std_values.to_dict() }}</pre>
+
+        <h3>Summary</h3>
+        <pre>{{ summary.to_dict() }}</pre>
+
+        <h3>Data Types</h3>
+        <pre>{{ data_types.to_dict() }}</pre>
+
+        <!-- ==================== -->
+        <!-- Skewness & Kurtosis -->
+        <!-- ==================== -->
+
+        <h2>Distribution Analysis</h2>
+
+        <h3>Skewness</h3>
+        <pre>{{ skewness.to_dict() }}</pre>
+
+        <h3>Kurtosis</h3>
+        <pre>{{ kurtosis.to_dict() }}</pre>
+
+        <h2>Categorical Analysis</h2>
+
+{% if categorical_summary %}
+
+    {% for column, details in categorical_summary.items() %}
+
+        <h3>{{ column }}</h3>
+
+        <p>
+            <strong>Unique Values:</strong>
+            {{ details.unique_values }}
+        </p>
+
+        <p>
+            <strong>Most Frequent:</strong>
+            {{ details.most_frequent }}
+        </p>
+
+        <h4>Value Frequencies</h4>
+
+        <table border="1">
+            <tr>
+                <th>Value</th>
+                <th>Count</th>
+            </tr>
+
+            {% for value, count in details.frequency.items() %}
+            <tr>
+                <td>{{ value }}</td>
+                <td>{{ count }}</td>
+            </tr>
+            {% endfor %}
+
+        </table>
+
+        <br>
+
+    {% endfor %}
+
+{% else %}
+
+    <p>No categorical columns found.</p>
+
+{% endif %}
+
+        <!-- ==================== -->
+        <!-- Categorical Visualizations -->
+        <!-- ==================== -->
+        
+<h2>Categorical Visualizations</h2>
+
+{% if categorical_chart_paths %}
+
+    {% for chart in categorical_chart_paths %}
+
+        <div>
+            <img
+                src="{{ url_for('static', filename=chart) }}"
+                alt="Categorical Bar Chart"
+                style="max-width: 800px;"
+            >
+        </div>
+
+        <br>
+
+    {% endfor %}
+
+{% else %}
+
+    <p>No categorical visualizations available.</p>
+
+{% endif %}
+
+        <!-- Scatter Plot Analysis -->
+<h2>Scatter Plot Analysis</h2>
+
+{% if scatter_chart_paths %}
+    {% for chart in scatter_chart_paths %}
+        <div>
+            <img
+                src="{{ url_for('static', filename=chart) }}"
+                alt="Scatter Plot"
+                style="max-width: 800px;"
+            >
+        </div>
+        <br>
+    {% endfor %}
+{% else %}
+    <p>No scatter plots available.</p>
+
+{% endif %}
+
+
+
+        <!-- ==================== -->
+        <!-- Missing Values -->
+        <!-- ==================== -->
+            
+        <h2>Missing Values by Column</h2>
+
+        <pre>{{ missing_by_column.to_dict() }}</pre>
+
+        <!-- ==================== -->
+<!-- Unique Value Analysis -->
+<!-- ==================== -->
+
+<h2>Unique Value Analysis</h2>
+
+{% if unique_value_counts is not none %}
+
+    <table border="1">
+        <tr>
+            <th>Column</th>
+            <th>Unique Values</th>
+        </tr>
+
+        {% for column, count in unique_value_counts.items() %}
+        <tr>
+            <td>{{ column }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+
+    </table>
+
+{% else %}
+
+    <p>No unique value information available.</p>
+
+{% endif %}
+
+<!-- High Cardinality Analysis -->
+<h2>High-Cardinality Categorical Columns</h2>
+
+{% if high_cardinality %}
+    <table border="1">
+        <tr>
+            <th>Column</th>
+            <th>Unique Values</th>
+        </tr>
+
+        {% for column, count in high_cardinality.items() %}
+        <tr>
+            <td>{{ column }}</td>
+            <td>{{ count }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+{% else %}
+    <p>No high-cardinality categorical columns found.</p>
+{% endif %}
+
+
+        <h2>Data Preprocessing</h2>
+
+<form action="/preprocess" method="POST">
+
+    <input type="hidden" name="filename" value="{{ filename }}">
+
+    <h3>Missing Value Treatment</h3>
+
+    <label>
+        <input type="radio"
+               name="missing_strategy"
+               value="none"
+               checked>
+        None
+    </label>
+
+    <br>
+
+    <label>
+        <input type="radio"
+               name="missing_strategy"
+               value="drop">
+        Drop Rows with Missing Values
+    </label>
+
+    <br>
+
+    <label>
+        <input type="radio"
+               name="missing_strategy"
+               value="mean">
+        Fill Numerical Missing Values with Mean
+    </label>
+
+    <br>
+
+    <label>
+        <input type="radio"
+               name="missing_strategy"
+               value="median">
+        Fill Numerical Missing Values with Median
+    </label>
+
+    <br>
+
+    <label>
+        <input type="radio"
+               name="missing_strategy"
+               value="mode">
+        Fill Missing Values with Mode
+    </label>
+
+    <br><br>
+
+    <h3>Outlier Treatment</h3>
+
+    <label>
+        <input type="radio"
+               name="outlier_method"
+               value="none"
+               checked>
+        None
+    </label>
+
+    <br>
+
+    <label>
+        <input type="radio"
+               name="outlier_method"
+               value="iqr">
+        Remove IQR Outliers
+    </label>
+
+    <br>
+
+    <label>
+        <input type="radio"
+               name="outlier_method"
+               value="zscore">
+        Remove Z-score Outliers
+    </label>
+
+    
+    <br><br>
+
+<h3>Categorical Encoding</h3>
+
+<label>
+    <input type="radio" name="encoding_method" value="none" checked>
+    None
+</label>
+<br>
+
+<label>
+    <input type="radio" name="encoding_method" value="onehot">
+    One-Hot Encoding
+</label>
+<br>
+
+<label>
+    <input type="radio" name="encoding_method" value="label">
+    Label Encoding
+</label>
+
+
+<br><br>
+
+<h3>Feature Scaling</h3>
+
+<label>
+    <input type="radio" name="scaling_method" value="none" checked>
+    None
+</label>
+<br>
+
+<label>
+    <input type="radio" name="scaling_method" value="standard">
+    Standard Scaling
+</label>
+<br>
+
+<label>
+    <input type="radio" name="scaling_method" value="minmax">
+    Min-Max Scaling
+</label>
+<br>
+
+<label>
+    <input type="radio" name="scaling_method" value="robust">
+    Robust Scaling
+</label>
+
+<br><br>
+
+
+    <button type="submit">
+        Apply Preprocessing
+    </button>
+
+</form>
+     
+
+        <!-- ==================== -->
+        <!-- Duplicate Rows -->
+        <!-- ==================== -->
+
+        <h2>Duplicate Rows</h2>
+
+        <pre>{{ duplicate_data.to_string(index=False) }}</pre>
+        
+        <!-- ==================== -->
+        <!-- Outlier Detection -->
+        <!-- ==================== -->
+
+        <h2>Outlier Detection (IQR)</h2>
+
+        <h3>Outlier Count</h3>
+        <pre>{{ outlier_counts.to_dict() }}</pre>
+
+        <h3>Lower Bound</h3>
+        <pre>{{ lower_bound.to_dict() }}</pre>
+
+        <h3>Upper Bound</h3>
+        <pre>{{ upper_bound.to_dict() }}</pre>
+
+        <h3>Potential Outlier Values</h3>
+        <pre>{{ outlier_values.to_string(index=False) }}</pre>
+
+        <!-- ==================== -->
+        <!-- Z-score Outlier Detection -->
+        <!-- ==================== -->
+
+        <h2>Outlier Detection (Z-score)</h2>
+
+        <h3>Threshold</h3>
+
+        <p>|Z-score| &gt; 3</p>
+
+        <h3>Z-score Outlier Count</h3>
+
+        <pre>{{ z_score_outlier_counts.to_dict() }}</pre>
+
+        <h3>Potential Z-score Outlier Values</h3>
+
+        <pre>{{ z_score_outlier_values.to_string(index=False) }}</pre>
+
+        <!-- ==================== -->
+        <!-- Data Visualization -->
+        <!-- ==================== -->
+        
+        <h2>Data Visualization</h2>
+
+
+        <!-- Histograms -->
+
+        <h3>Distribution</h3>
+
+        {% for chart in chart_paths %}
+
+            <div>
+
+                <h4>{{ chart }}</h4>
+
+                <img src="{{ url_for('static', filename=chart) }}"
+                     alt="Histogram"
+                     width="700">
+
+            </div>
+
+        {% endfor %}
+
+
+        <!-- Box Plots -->
+
+        <h3>Outlier Visualization</h3>
+        {% for chart in box_charts_paths %}
+            <div>
+                <h4>{{ chart }}</h4>
+                <img src="{{ url_for('static', filename=chart) }}"
+                     alt="Box Plot"
+                     width="700">
+
+            </div>
+
+        {% endfor %}
+
+       
+<!-- Correlation Heatmap -->
+<h3>Correlation Analysis</h3>
+
+{% if correlation_path %}
+    <div>
+        <img src="{{ url_for('static', filename=correlation_path) }}"
+             alt="Correlation Heatmap"
+             widtha="700">
+    </div>
+{% else %}
+    <p>Correlation heatmap is unavailable. At least two numeric columns are required.</p>
+{% endif %}
+{% endif %}
+    <!-- ==================== -->
+<!-- Cleaned Dataset -->
+<!-- ==================== -->
+
+{% if cleaned_data %}
+
+    <h2>Cleaned Dataset</h2>
+
+    <div>
+        {{ cleaned_data | safe }}
+    </div>
+
+    <br>
+    <a href ="{{url_for('download',filename=cleaned_filename)}}">
+        <button type="button">Downlaod Cleaned CSV</button>
+    </a>
+
+{% endif %}
+</body>
+
+</html>
