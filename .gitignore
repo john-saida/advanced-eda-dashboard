@@ -1,0 +1,15 @@
+# Python environments and cache
+myenv/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+
+# Local secrets
+.env
+
+# User-uploaded data and generated chart files
+uploads/*
+!uploads/.gitkeep
+static/plots/*
+!static/plots/.gitkeep
